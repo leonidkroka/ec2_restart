@@ -11,8 +11,9 @@ A lightweight tool for rebooting AWS EC2 instances via Slack Slash Commands usin
 Open `main.tf` and set your specific configuration values (lines 73–75):
 
 * **`main.tf:73`** — Target EC2 Instance ID (e.g., `i-014a14322c65e9487`)
-* **`main.tf:74`** — Secret key to secure the Function URL (e.g., `my_super_secret_key`)
+* **`main.tf:74`** — Slack Signing Secret for request verification
 * **`main.tf:75`** — AWS Region (e.g., `eu-west-1`)
+* **`main.tf:76`** — Slack Channel ID (e.g., `C01R2XXXXXX`)
 
 ---
 
@@ -47,9 +48,8 @@ terraform apply
 3. **Add Slash Command:**
     * Navigate to **Slash Commands** -> **Create New Command**.
     * Enter your preferred command name (e.g., `/restart-ec2`).
-    * In the **Request URL** field, paste the URL obtained from **Step 3**, appending the secret as a query parameter:
-      `https://<YOUR-LAMBDA-URL>.lambda-url.eu-west-1.on.aws/?secret=<YOUR_SECRET_FROM_MAIN_TF>`
-      *(The secret value must match what you set in `main.tf:75`).*
+    * In the **Request URL** field, paste the URL obtained from **Step 3**:
+      `https://<YOUR-LAMBDA-URL>.lambda-url.eu-west-1.on.aws/`
 
 ---
 

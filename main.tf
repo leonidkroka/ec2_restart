@@ -70,9 +70,10 @@ resource "aws_lambda_function" "ec2_restart_lambda" {
 
   environment {
     variables = {
-      TARGET_INSTANCE_ID = "i-014a14322c65e****" # ID EC2
-      SLACK_SIGNING_SECRET = "****"
+      TARGET_INSTANCE_ID = "i-014a14322c6XXXX" # ID EC2
+      SLACK_SIGNING_SECRET = "XXXXXX"
       EC2_REGION = "eu-west-1"
+      SLACK_CHANNEL_ID = "C01R2UXXXX"
     }
   }
 
