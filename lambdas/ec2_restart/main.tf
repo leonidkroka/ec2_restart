@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.5.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -9,10 +11,18 @@ terraform {
       version = "~> 2.0"
     }
   }
+
+  backend "s3" {
+    bucket = "630353335020-infrastructure-tf-state"
+    key = "environments/prod/ec2_restart/terraform.tfstate"
+    region = "eu-west-1"
+    dynamodb_table = "infrastructure-tf-locks"
+    encrypt = true
+  }
 }
 
 provider "aws" {
-  region = "eu-west-1"
+  region = var.aws_region
 }
 
 data "archive_file" "lambda_zip" {
@@ -54,6 +64,14 @@ resource "aws_iam_role_policy" "lambda_ec2_inline" {
         Effect = "Allow"
         Action = ["ec2:RebootInstances", "ec2:DescribeInstances"]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = "arn:aws:ssm:*:*:parameter/backend/*"
       }
     ]
   })
@@ -63,17 +81,18 @@ resource "aws_lambda_function" "ec2_restart_lambda" {
   filename = data.archive_file.lambda_zip.output_path
   function_name = "restart_ec2_lambda"
   role = aws_iam_role.lambda_role.arn
-  runtime = "ruby3.2"
+  runtime = "ruby3.4"
   handler = "lambda_function.lambda_handler"
   memory_size = 1024
   timeout = 20
 
   environment {
     variables = {
-      TARGET_INSTANCE_ID = "i-014a14322c6XXXX" # ID EC2
-      SLACK_SIGNING_SECRET = "XXXXXX"
-      EC2_REGION = "eu-west-1"
-      SLACK_CHANNEL_ID = "C01R2UXXXX"
+      EC2_REGION_PATH = var.aws_region_path
+      TARGET_INSTANCE_ID_PATH = var.ec2_instance_id_path
+      SLACK_SIGNING_SECRET_PATH = var.slack_signing_secret_path
+      SLACK_CHANNEL_ID_PATH = var.slack_channel_id_path
+      SSM_REGION = var.aws_ssm_region
     }
   }
 
