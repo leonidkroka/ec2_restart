@@ -1,6 +1,6 @@
 resource "aws_iam_openid_connect_provider" "gitlab" {
-  url             = "https://gitlab.com"
-  client_id_list  = ["https://gitlab.com"]
+  url = "https://gitlab.com"
+  client_id_list = ["https://gitlab.com"]
   thumbprint_list = ["b3ed444352414217054dd8065d64c494384f4992"]
 }
 
@@ -29,6 +29,40 @@ resource "aws_iam_role" "gitlab_ci_role" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+resource "aws_iam_policy" "lambda_boundary" {
+  name = "LambdaPermissionsBoundary"
+  description = "Max allowed permissions for dynamically created Lambdas"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "AllowBasicLambdaExecution"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = ["ec2:RebootInstances", "ec2:DescribeInstances"]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/backend/*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy" "gitlab_ci_policy" {
   name = "gitlab-ci-lambda-update-policy"
   role = aws_iam_role.gitlab_ci_role.id
@@ -37,14 +71,108 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid = "ManageLambdasWithPrefix"
         Effect = "Allow"
         Action = [
+          "lambda:CreateFunction",
+          "lambda:DeleteFunction",
           "lambda:UpdateFunctionCode",
           "lambda:UpdateFunctionConfiguration",
           "lambda:GetFunction",
-          "lambda:ListFunctions"
+          "lambda:GetFunctionCodeSigningConfig",
+          "lambda:GetPolicy",
+          "lambda:ListFunctions",
+          "lambda:ListVersionsByFunction",
+          "lambda:ListTags",
+          "lambda:TagResource",
+          "lambda:CreateFunctionUrlConfig",
+          "lambda:GetFunctionUrlConfig",
+          "lambda:UpdateFunctionUrlConfig",
+          "lambda:DeleteFunctionUrlConfig",
+          "lambda:AddPermission",
+          "lambda:RemovePermission"
         ]
-        Resource = "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:*"
+        Resource = "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:backend-*"
+      },
+      {
+        Sid = "ManageRolesWithBoundaryCondition"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole",
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy"
+        ]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/backend-*"
+        Condition = {
+          StringEquals = {
+            "iam:PermissionsBoundary" = aws_iam_policy.lambda_boundary.arn
+          }
+        }
+      },
+      {
+        Sid = "ManageRoleAttachmentsAndInfo"
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:DeleteRole",
+          "iam:UpdateRole",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:GetRolePolicy",
+          "iam:ListAttachedRolePolicies",
+          "iam:ListRolePolicies",
+          "iam:TagRole"
+        ]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/backend-*"
+      },
+      {
+        Sid = "ReadAWSManagedPolicies"
+        Effect = "Allow"
+        Action = [
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion"
+        ]
+        Resource = "arn:aws:iam::aws:policy/*"
+      },
+      {
+        Sid    = "PassRoleToLambda"
+        Effect = "Allow"
+        Action = "iam:PassRole"
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/backend-*"
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "lambda.amazonaws.com"
+          }
+        }
+      },
+      {
+        Sid = "AllowS3BackendBucketLevel"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = "arn:aws:s3:::${data.aws_caller_identity.current.account_id}-infrastructure-tf-state"
+      },
+      {
+        Sid = "AllowS3BackendObjectLevel"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "arn:aws:s3:::${data.aws_caller_identity.current.account_id}-infrastructure-tf-state/*"
+      },
+      {
+        Sid = "AllowDynamoDBStateLocks"
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem"
+        ]
+        Resource = "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/infrastructure-tf-locks"
       }
     ]
   })

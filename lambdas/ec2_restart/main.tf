@@ -31,8 +31,11 @@ data "archive_file" "lambda_zip" {
   output_path = "${path.module}/lambda_function.zip"
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "lambda_role" {
-  name = "ec2_restart_lambda_execution_role"
+  name = "backend-ec2-restart-lambda-execution-role"
+  permissions_boundary = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/LambdaPermissionsBoundary"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -54,7 +57,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 }
 
 resource "aws_iam_role_policy" "lambda_ec2_inline" {
-  name = "ec2_reboot_inline"
+  name = "backend-ec2-reboot-inline"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
@@ -79,7 +82,7 @@ resource "aws_iam_role_policy" "lambda_ec2_inline" {
 
 resource "aws_lambda_function" "ec2_restart_lambda" {
   filename = data.archive_file.lambda_zip.output_path
-  function_name = "restart_ec2_lambda"
+  function_name = "backend-restart-ec2-lambda"
   role = aws_iam_role.lambda_role.arn
   runtime = "ruby3.4"
   handler = "lambda_function.lambda_handler"
