@@ -1,7 +1,7 @@
 variable "bucket_name" {
   type = string
   description = "Name of the S3 bucket for Terraform state"
-  default = "630353335020-infrastructure-tf-state"
+  default = "leobit-infrastructure-tf-state"
 }
 
 variable "dynamodb_table_name" {

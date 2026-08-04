@@ -13,7 +13,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "630353335020-infrastructure-tf-state"
+    bucket = "leobit-infrastructure-tf-state"
     key = "environments/prod/ec2_restart/terraform.tfstate"
     region = "eu-west-1"
     dynamodb_table = "infrastructure-tf-locks"
