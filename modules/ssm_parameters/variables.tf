@@ -4,7 +4,7 @@ variable "parameters" {
   default = [
     {
       name = "/backend/general/region"
-      value = "eu-west-1"
+      value = "eu-central-1"
       description = "Region where target EC2 instance is located"
     },
     {

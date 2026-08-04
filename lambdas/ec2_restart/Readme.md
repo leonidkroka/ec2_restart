@@ -12,7 +12,7 @@ Open `main.tf` and set your specific configuration values (lines 73–75):
 
 * **`main.tf:73`** — Target EC2 Instance ID (e.g., `i-014a14322c65e9487`)
 * **`main.tf:74`** — Slack Signing Secret for request verification
-* **`main.tf:75`** — AWS Region (e.g., `eu-west-1`)
+* **`main.tf:75`** — AWS Region (e.g., `eu-central-1`)
 * **`main.tf:76`** — Slack Channel ID (e.g., `C01R2XXXXXX`)
 
 ---
@@ -24,7 +24,7 @@ Export your AWS credentials to your environment variables:
 ```bash
 export AWS_ACCESS_KEY_ID="AAAA"
 export AWS_SECRET_ACCESS_KEY="9AAAA"
-export AWS_DEFAULT_REGION="eu-west-1"
+export AWS_DEFAULT_REGION="eu-central-1"
 ```
 
 ### 3. Deploy Infrastructure via Terraform
@@ -49,7 +49,7 @@ terraform apply
     * Navigate to **Slash Commands** -> **Create New Command**.
     * Enter your preferred command name (e.g., `/restart-ec2`).
     * In the **Request URL** field, paste the URL obtained from **Step 3**:
-      `https://<YOUR-LAMBDA-URL>.lambda-url.eu-west-1.on.aws/`
+      `https://<YOUR-LAMBDA-URL>.lambda-url.eu-central-1.on.aws/`
 
 ---
 

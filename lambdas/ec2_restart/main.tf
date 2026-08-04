@@ -15,7 +15,7 @@ terraform {
   backend "s3" {
     bucket = "leobit-infrastructure-tf-state"
     key = "environments/prod/ec2_restart/terraform.tfstate"
-    region = "eu-west-1"
+    region = "eu-central-1"
     dynamodb_table = "infrastructure-tf-locks"
     encrypt = true
   }
