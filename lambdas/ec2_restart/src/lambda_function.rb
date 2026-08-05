@@ -22,7 +22,7 @@ class Ec2RestartService
     puts "ALERT: User #{params['user_name']}(##{params['user_id']}) triggered EC2 reboot for #{ec2_instance_id}"
     Aws::EC2::Client.new(region: ec2_region)
                     .reboot_instances(instance_ids: [ec2_instance_id])
-    respond_to_slack("🚀 Інстанс `#{ec2_instance_id}` успішно відправлено на перезавантаження!")
+    respond_to_slack("🚀 Production інстанс(ID `#{ec2_instance_id}`) успішно відправлено на перезавантаження!")
   rescue Aws::EC2::Errors::ServiceError => e
     respond_to_slack("❌ **AWS Помилка**: #{e.message}")
   rescue StandardError => e
