@@ -195,7 +195,7 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
           "s3:ListBucket",
           "s3:GetBucketLocation"
         ]
-        Resource = "arn:aws:s3:::630353335020-infrastructure-tf-state"
+        Resource = "arn:aws:s3:::leobit-infrastructure-tf-state"
       },
       {
         Sid = "AllowS3BackendObjectLevel"
@@ -205,7 +205,7 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = "arn:aws:s3:::630353335020-infrastructure-tf-state/*"
+        Resource = "arn:aws:s3:::leobit-infrastructure-tf-state/*"
       },
       {
         Sid = "AllowDynamoDBStateLocks"

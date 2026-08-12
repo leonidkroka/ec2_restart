@@ -25,13 +25,13 @@ variable "slack_channel_id_path" {
 variable "aws_region" {
   type = string
   description = "AWS Lambda region"
-  default = "eu-west-1"
+  default = "eu-central-1"
 }
 
 variable "aws_ssm_region" {
   type = string
   description = "AWS SSM region"
-  default = "eu-west-1"
+  default = "eu-central-1"
 }
 
 variable "parameters" {
@@ -40,7 +40,7 @@ variable "parameters" {
   default = [
     {
       name = "/backend/general/region"
-      value = "eu-west-1"
+      value = "eu-central-1"
       description = "Region where target EC2 instance is located"
     },
     {

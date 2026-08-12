@@ -1,13 +1,13 @@
 variable "aws_region" {
   type = string
   description = "AWS Lambda region"
-  default = "eu-west-1"
+  default = "eu-central-1"
 }
 
 variable "aws_ssm_region" {
   type = string
   description = "AWS SSM region"
-  default = "eu-west-1"
+  default = "eu-central-1"
 }
 
 variable "cloudflare_zone_id_path" {

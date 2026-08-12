@@ -1,6 +1,10 @@
 stages:
   - deploy
 
+variables:
+  AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/aws_oidc_token
+  AWS_DEFAULT_REGION: "eu-central-1"
+
 default:
   image:
     name: hashicorp/terraform:1.6
@@ -8,15 +12,8 @@ default:
   id_tokens:
     AWS_OIDC_TOKEN:
       aud: https://gitlab.com
-  variables:
-    AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/aws_oidc_token
-    AWS_DEFAULT_REGION: "eu-west-1"
   before_script:
     - echo "$AWS_OIDC_TOKEN" > $AWS_WEB_IDENTITY_TOKEN_FILE
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      when: manual
-      allow_failure: true
 
 deploy_lambda_ec2_restart:
   stage: deploy
@@ -25,11 +22,19 @@ deploy_lambda_ec2_restart:
     - terraform init
     - terraform plan
     - terraform apply -auto-approve
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+      allow_failure: true
 
-deploy_lambda_cloudfront_cache_purge:
+deploy_lambda_cloudflare_cache_purge:
   stage: deploy
   script:
     - cd lambdas/cloudflare_cache_purge
     - terraform init
     - terraform plan
     - terraform apply -auto-approve
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+      allow_failure: true
