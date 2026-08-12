@@ -14,7 +14,7 @@ terraform {
 
   backend "s3" {
     bucket = "630353335020-infrastructure-tf-state"
-    key = "environments/prod/ec2_restart/terraform.tfstate"
+    key = "environments/prod/cloudflare_cache_purge/terraform.tfstate"
     region = "eu-west-1"
     dynamodb_table = "infrastructure-tf-locks"
     encrypt = true
@@ -34,7 +34,7 @@ data "archive_file" "lambda_zip" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "lambda_role" {
-  name = "backend-ec2-restart-lambda-execution-role"
+  name = "backend-cloudflare-cache-purge-lambda-execution-role"
   permissions_boundary = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/LambdaPermissionsBoundary"
 
   assume_role_policy = jsonencode({
@@ -56,18 +56,13 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_iam_role_policy" "lambda_ec2_inline" {
-  name = "backend-ec2-reboot-inline"
+resource "aws_iam_role_policy" "lambda_cloudflare_cache_purge" {
+  name = "backend-cloudflare-cache-purge-ssm-policy"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Effect = "Allow"
-        Action = ["ec2:RebootInstances", "ec2:DescribeInstances"]
-        Resource = "*"
-      },
       {
         Effect = "Allow"
         Action = [
@@ -80,9 +75,9 @@ resource "aws_iam_role_policy" "lambda_ec2_inline" {
   })
 }
 
-resource "aws_lambda_function" "ec2_restart_lambda" {
+resource "aws_lambda_function" "cloudflare_cache_purge_lambda" {
   filename = data.archive_file.lambda_zip.output_path
-  function_name = "backend-restart-ec2-lambda"
+  function_name = "backend-purge-cloudflare-cache-lambda"
   role = aws_iam_role.lambda_role.arn
   runtime = "ruby3.4"
   handler = "lambda_function.lambda_handler"
@@ -91,8 +86,9 @@ resource "aws_lambda_function" "ec2_restart_lambda" {
 
   environment {
     variables = {
-      EC2_REGION_PATH = var.aws_region_path
-      TARGET_INSTANCE_ID_PATH = var.ec2_instance_id_path
+      CF_ZONE_ID_PATH = var.cloudflare_zone_id_path
+      CF_SECONDARY_ZONE_ID_PATH = var.cloudflare_secondary_zone_id_path
+      CF_API_TOKEN_PATH = var.cloudflare_api_token_path
       SLACK_SIGNING_SECRET_PATH = var.slack_signing_secret_path
       SLACK_CHANNEL_ID_PATH = var.slack_channel_id_path
       SSM_REGION = var.aws_ssm_region
@@ -103,15 +99,15 @@ resource "aws_lambda_function" "ec2_restart_lambda" {
   depends_on = [aws_iam_role_policy_attachment.lambda_logs]
 }
 
-resource "aws_lambda_function_url" "ec2_restart_url" {
-  function_name = aws_lambda_function.ec2_restart_lambda.function_name
+resource "aws_lambda_function_url" "cloudflare_cache_purge_url" {
+  function_name = aws_lambda_function.cloudflare_cache_purge_lambda.function_name
   authorization_type = "NONE"
 }
 
 resource "aws_lambda_permission" "allow_public_url" {
   statement_id = "FunctionURLAllowPublicAccess"
   action = "lambda:InvokeFunctionUrl"
-  function_name = aws_lambda_function.ec2_restart_lambda.function_name
+  function_name = aws_lambda_function.cloudflare_cache_purge_lambda.function_name
   principal = "*"
   function_url_auth_type = "NONE"
 }
@@ -127,9 +123,9 @@ resource "aws_ssm_parameter" "this" {
   lifecycle {
     ignore_changes = [value]
   }
-}s
+}
 
 output "lambda_function_url" {
-  value = aws_lambda_function_url.ec2_restart_url.function_url
+  value = aws_lambda_function_url.cloudflare_cache_purge_url.function_url
   description = "Insert this URL into Slack Slash Command Request URL"
 }
