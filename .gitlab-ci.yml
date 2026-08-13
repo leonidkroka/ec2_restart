@@ -1,9 +1,17 @@
 stages:
+  - ai-review
   - deploy
+
+include:
+  - project: 'leobit/internal-projects/leobit/ai-resources'
+    ref: master
+    file: 'code-review/gitlab/templates/claude-review.yml'
 
 variables:
   AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/aws_oidc_token
   AWS_DEFAULT_REGION: "eu-central-1"
+  # This repo has no develop branch; review MRs targeting master.
+  REVIEW_TARGET_BRANCH: "master"
 
 default:
   image:
