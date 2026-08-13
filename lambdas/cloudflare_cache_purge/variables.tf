@@ -36,7 +36,7 @@ variable "slack_signing_secret_path" {
 
 variable "slack_channel_id_path" {
   type = string
-  description = "AWS Parameters Store path for Slack channel ID, from which EC2 restart is allowed"
+  description = "AWS Parameters Store path for Slack channel ID, from which CloudFlare cache purging is allowed"
   default = "/backend/cloudflare_cache_purge/slack_channel_id"
 }
 

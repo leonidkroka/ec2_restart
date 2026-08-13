@@ -135,7 +135,7 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
         Resource = "arn:aws:iam::aws:policy/*"
       },
       {
-        Sid    = "PassRoleToLambda"
+        Sid = "PassRoleToLambda"
         Effect = "Allow"
         Action = "iam:PassRole"
         Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/backend-*"
@@ -146,9 +146,9 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
         }
       },
       {
-        "Sid": "AllowSSMParameterManagement",
-        "Effect": "Allow",
-        "Action": [
+        Sid = "AllowSSMParameterManagement",
+        Effect = "Allow",
+        Action = [
           "ssm:PutParameter",
           "ssm:GetParameter",
           "ssm:GetParameters",
@@ -156,15 +156,15 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
           "ssm:AddTagsToResource",
           "ssm:ListTagsForResource"
         ],
-        "Resource": "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/backend/*"
+        Resource = "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/backend/*"
       },
       {
-        "Sid": "AllowSSMDescribe",
-        "Effect": "Allow",
-        "Action": [
+        Sid = "AllowSSMDescribe",
+        Effect = "Allow",
+        Action = [
           "ssm:DescribeParameters"
         ],
-        "Resource": "*"
+        Resource = "*"
       },
       {
         Sid = "ManageCloudWatchLogGroups"

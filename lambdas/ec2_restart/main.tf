@@ -127,7 +127,7 @@ resource "aws_ssm_parameter" "this" {
   lifecycle {
     ignore_changes = [value]
   }
-}s
+}
 
 output "lambda_function_url" {
   value = aws_lambda_function_url.ec2_restart_url.function_url
