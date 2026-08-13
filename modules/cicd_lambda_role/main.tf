@@ -135,7 +135,7 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
         Resource = "arn:aws:iam::aws:policy/*"
       },
       {
-        Sid    = "PassRoleToLambda"
+        Sid = "PassRoleToLambda"
         Effect = "Allow"
         Action = "iam:PassRole"
         Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/backend-*"
@@ -144,6 +144,49 @@ resource "aws_iam_role_policy" "gitlab_ci_policy" {
             "iam:PassedToService" = "lambda.amazonaws.com"
           }
         }
+      },
+      {
+        Sid = "AllowSSMParameterManagement",
+        Effect = "Allow",
+        Action = [
+          "ssm:PutParameter",
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:DeleteParameter",
+          "ssm:AddTagsToResource",
+          "ssm:ListTagsForResource"
+        ],
+        Resource = "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/backend/*"
+      },
+      {
+        Sid = "AllowSSMDescribe",
+        Effect = "Allow",
+        Action = [
+          "ssm:DescribeParameters"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid = "ManageCloudWatchLogGroups"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:DeleteLogGroup",
+          "logs:PutRetentionPolicy",
+          "logs:DeleteRetentionPolicy",
+          "logs:ListTagsForResource",
+          "logs:TagResource",
+          "logs:UntagResource"
+        ]
+        Resource = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/backend-*"
+      },
+      {
+        Sid = "DescribeCloudWatchLogGroups"
+        Effect = "Allow"
+        Action = [
+          "logs:DescribeLogGroups"
+        ]
+        Resource = "*"
       },
       {
         Sid = "AllowS3BackendBucketLevel"

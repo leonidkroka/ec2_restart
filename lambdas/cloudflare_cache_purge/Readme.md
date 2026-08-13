@@ -1,7 +1,7 @@
-# Lambda EC2 instance restarter
+# Lambda Cloudflare Cache Purger
 
 ## Overview
-This tool automates the process of EC2 instance restarting
+This tool automates the process of purging Cloudflare cache for `leobit.com` and `leobit.design` directly from Slack. This reduces manual overhead and prevents bottlenecks in infrastructure operations.
 
 ## Setup Instructions
 
@@ -12,7 +12,7 @@ This tool automates the process of EC2 instance restarting
 4.  **Add Slash Command:**
     *   Go to **Features > Slash Commands**.
     *   Click **Create New Command**.
-    *   Set the **Command** (e.g., `/ec2-restart`).
+    *   Set the **Command** (e.g., `/purge-cache`).
     *   In the **Request URL** field, paste the Lambda URL obtained from the deployment pipeline (see Section 3).
 5.  **Get Signing Secret:**
     *   Navigate to **Settings > Basic Information**.
@@ -30,11 +30,11 @@ This tool automates the process of EC2 instance restarting
 ### 4. Configuration
 Ensure the following variables are set in your Lambda environment:
 *   `SLACK_SIGNING_SECRET`: From Slack App Credentials.
-*   `SLACK_CHANNEL_ID`: Authorized Slack channel ID for triggering Lambda.
-*   `EC2_INSTANCE_ID`: AWS EC2 instance ID to be restarted.
+*   `CLOUDFARE_API_TOKEN`: Token with 'Cache Purge' zone permissions.
+*   `ZONE_ID`: The specific Zone ID for the domain you are targeting.
 
 ## Usage
 Once configured, use the slash command in the designated Slack channel:
-`/ec2-restart`
+`/purge-cache`
 
 > **Troubleshooting Note:** If Slack returns `403 Forbidden` or `Internal Server Error`, go to the AWS Lambda Console -> **Configuration** -> **Function URL**, click **Edit**, ensure Auth type is set to **NONE**, and save the settings to refresh the resource policy.

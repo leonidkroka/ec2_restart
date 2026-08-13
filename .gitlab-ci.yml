@@ -1,29 +1,48 @@
 stages:
+  - ai-review
   - deploy
 
-deploy_lambda:
-  stage: deploy
+include:
+  - project: 'leobit/internal-projects/leobit/ai-resources'
+    ref: master
+    file: 'code-review/gitlab/templates/claude-review.yml'
+
+variables:
+  AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/aws_oidc_token
+  AWS_DEFAULT_REGION: "eu-central-1"
+  # This repo has no develop branch; review MRs targeting master.
+  REVIEW_TARGET_BRANCH: "master"
+
+default:
   image:
     name: hashicorp/terraform:1.6
     entrypoint: [""]
-
   id_tokens:
     AWS_OIDC_TOKEN:
       aud: https://gitlab.com
-
-  variables:
-    AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/aws_oidc_token
-    AWS_DEFAULT_REGION: "eu-central-1"
-
   before_script:
     - echo "$AWS_OIDC_TOKEN" > $AWS_WEB_IDENTITY_TOKEN_FILE
 
+deploy_lambda_ec2_restart:
+  stage: deploy
   script:
     - cd lambdas/ec2_restart
     - terraform init
     - terraform plan
     - terraform apply -auto-approve
-
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       when: manual
+      allow_failure: true
+
+deploy_lambda_cloudflare_cache_purge:
+  stage: deploy
+  script:
+    - cd lambdas/cloudflare_cache_purge
+    - terraform init
+    - terraform plan
+    - terraform apply -auto-approve
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+      allow_failure: true
