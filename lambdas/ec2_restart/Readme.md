@@ -1,62 +1,40 @@
-# AWS EC2 Slack Restarter
+# Lambda EC2 instance restarter
 
-A lightweight tool for rebooting AWS EC2 instances via Slack Slash Commands using AWS Lambda and Terraform.
+## Overview
+This tool automates the process of EC2 instance restarting
 
----
+## Setup Instructions
 
-## 🚀 Deployment Steps
+### 1. Slack App Configuration
+1.  Go to [your Slack Apps dashboard](https://api.slack.com/apps).
+2.  Create a new app or select your existing one.
+3.  **Disable Socket Mode:** Navigate to **Settings > Socket Mode** and ensure it is **Disabled**.
+4.  **Add Slash Command:**
+    *   Go to **Features > Slash Commands**.
+    *   Click **Create New Command**.
+    *   Set the **Command** (e.g., `/ec2-restart`).
+    *   In the **Request URL** field, paste the Lambda URL obtained from the deployment pipeline (see Section 3).
+5.  **Get Signing Secret:**
+    *   Navigate to **Settings > Basic Information**.
+    *   Scroll to **App Credentials** and copy the **Signing Secret**. You will need this for the Lambda environment variables.
 
-### 1. Configure Terraform Variables
+### 2. Install App to Workspace
+1.  Go to **Settings > Install App**.
+2.  Click **Install to Workspace**.
+3.  Authorize the permissions as prompted.
 
-Open `main.tf` and set your specific configuration values (lines 73–75):
+### 3. Get Required IDs
+*   **Channel ID:** Open the Slack channel where you intend to trigger the command, click on the channel name/header, and copy the **Channel ID** from the bottom of the popup.
+*   **Lambda URL:** Trigger your deployment pipeline for the `cicd_lambda` role. Once the deployment is successful, copy the generated **Function URL** from the AWS Lambda console or pipeline output.
 
-* **`main.tf:73`** — Target EC2 Instance ID (e.g., `i-014a14322c65e9487`)
-* **`main.tf:74`** — Slack Signing Secret for request verification
-* **`main.tf:75`** — AWS Region (e.g., `eu-central-1`)
-* **`main.tf:76`** — Slack Channel ID (e.g., `C01R2XXXXXX`)
+### 4. Configuration
+Ensure the following variables are set in your Lambda environment:
+*   `SLACK_SIGNING_SECRET`: From Slack App Credentials.
+*   `SLACK_CHANNEL_ID`: Authorized Slack channel ID for triggering Lambda.
+*   `EC2_INSTANCE_ID`: AWS EC2 instance ID to be restarted.
 
----
-
-### 2. Export AWS Credentials
-
-Export your AWS credentials to your environment variables:
-
-```bash
-export AWS_ACCESS_KEY_ID="AAAA"
-export AWS_SECRET_ACCESS_KEY="9AAAA"
-export AWS_DEFAULT_REGION="eu-central-1"
-```
-
-### 3. Deploy Infrastructure via Terraform
-
-Initialize and apply the Terraform configuration:
-
-```bash
-terraform init
-terraform plan
-terraform apply
-```
-
-> **Save the Output:** Once `terraform apply` finishes successfully, copy the **Lambda Function URL** provided in the terminal output.
-
----
-
-### 4. Create and Configure Slack App
-
-1. Go to [Slack API Apps](https://api.slack.com/apps) and click **Create New App**.
-2. **Disable Socket Mode:** In the *Socket Mode* section, ensure the toggle is set to `Disabled`.
-3. **Add Slash Command:**
-    * Navigate to **Slash Commands** -> **Create New Command**.
-    * Enter your preferred command name (e.g., `/restart-ec2`).
-    * In the **Request URL** field, paste the URL obtained from **Step 3**:
-      `https://<YOUR-LAMBDA-URL>.lambda-url.eu-central-1.on.aws/`
-
----
-
-### 5. Install the Slack App
-
-1. Navigate to **Install App** in the left sidebar menu of the Slack API dashboard.
-2. Click **Install to Workspace** and authorize the permissions.
-3. Done! You can now trigger `/restart-ec2` directly from your Slack channels.
+## Usage
+Once configured, use the slash command in the designated Slack channel:
+`/ec2-restart`
 
 > **Troubleshooting Note:** If Slack returns `403 Forbidden` or `Internal Server Error`, go to the AWS Lambda Console -> **Configuration** -> **Function URL**, click **Edit**, ensure Auth type is set to **NONE**, and save the settings to refresh the resource policy.

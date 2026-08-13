@@ -36,3 +36,5 @@ Ensure the following variables are set in your Lambda environment:
 ## Usage
 Once configured, use the slash command in the designated Slack channel:
 `/purge-cache`
+
+> **Troubleshooting Note:** If Slack returns `403 Forbidden` or `Internal Server Error`, go to the AWS Lambda Console -> **Configuration** -> **Function URL**, click **Edit**, ensure Auth type is set to **NONE**, and save the settings to refresh the resource policy.
